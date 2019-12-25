@@ -1,4 +1,4 @@
-from field import Field
+from lib.field import Field
 
 class Matrix(object):
     def __init__(self, rows, cols, field=Field(2)):
@@ -16,7 +16,7 @@ class Matrix(object):
 
     @staticmethod
     def fromString(s, field=Field(2)):
-        lines = map(lambda line: map(lambda n: int(n), line.strip().split()), s.strip().splitlines())
+        lines = list(map(lambda line: list(map(lambda n: int(n), line.strip().split())), s.strip().splitlines()))
         output = Matrix(len(lines), len(lines[0]), field)
         for (i, line) in enumerate(lines):
             for (j, v) in enumerate(line):
