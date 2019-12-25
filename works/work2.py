@@ -112,7 +112,7 @@ def task2():
         else:
             p = field.powerOf(val)
             print("g(a^%d) = a^%d" % (i, p))
-    syndrome_values = map(lambda (i, v): numToAlpha(v, field), syndrome_values_show)
+    syndrome_values = map(lambda tuple: numToAlpha(tuple[1], field), syndrome_values_show)
     syndrome = Polynomial(syndrome_values)
     print("syndrome(x) = %s" % str(syndrome))
 

@@ -138,7 +138,9 @@ class MultList(Expression):
         return result
 
 
-def _polynom_str((i, it), max_power):
+def _polynom_str(tuple, max_power):
+    i = tuple[0]
+    it = tuple[1]
     if isinstance(it, Num) and it.num == 1:
         if i == max_power:
             return str(it)
@@ -163,7 +165,7 @@ class Polynomial(Expression):
         self.list = list(map(lambda a: a if isinstance(a, Expression) else Num(a), lst))
 
     def calc(self, vars, field):
-        results = list(map(lambda (i, it): Mult(it, Var(i)).calc(vars, field), list(enumerate(self.list))))
+        results = list(map(lambda tuple: Mult(tuple[1], Var(tuple[0])).calc(vars, field), list(enumerate(self.list))))
         return reduce(lambda x, y: field.add(x, y), results)
 
     def mult(self, other, field):
@@ -192,4 +194,4 @@ class Polynomial(Expression):
         indexed = list(enumerate(self.list[::-1]))
 
         return "( %s )" % " + ".join(
-            list(map(lambda it: _polynom_str(it, len(self.list) - 1), filter(lambda (i, it): not it.is_null(), indexed))))
+            list(map(lambda it: _polynom_str(it, len(self.list) - 1), filter(lambda tuple: not tuple[1].is_null(), indexed))))

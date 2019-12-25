@@ -33,9 +33,16 @@ print(str(trimmed))
 trans = trimmed.transpose()
 print('after transposing:')
 print(str(trans))
-gen = trans.lextend()
+G = trans.lextend()
 print('after left-extending (generator matrix aka porojdayuschaya):')
-print(str(gen))
+print(str(G))
+
+print('minamal distance of straight code')
+# print(H)
+
+print('minamal distance of dual code')
+print(G.findDistance())
+
 
 print("")
 
