@@ -37,10 +37,10 @@ G = trans.lextend()
 print('after left-extending (generator matrix aka porojdayuschaya):')
 print(str(G))
 
-print('minamal distance of straight code:')
+print('minimal distance of straight code:')
 print(H.findDistance())
 
-print('minamal distance of dual code:')
+print('minimal distance of dual code:')
 print(G.findDistance())
 
 
@@ -50,3 +50,20 @@ print('=== generating syndrome decoding table ===')
 print('after input matrix transposing:')
 t = H.transpose()
 print(str(t))
+table = t.get_syndrome_table()
+print("syndrome decoding table:")
+print(table.to_str_with_delimiter(t.column_count()))
+
+print("")
+
+print('=== generating minimal span form for straight code ===')
+span_straight = G.to_minimal_span_form()
+print(str(span_straight))
+print("profile: " + str(list(map(lambda num: "2^%d" % num, span_straight.span_profile()))))
+
+print("")
+
+print('=== generating minimal span form for dual code ===')
+span_dual = H.to_minimal_span_form()
+print(str(span_dual))
+print("profile: " + str(list(map(lambda num: "2^%d" % num, span_straight.span_profile()))))

@@ -1,5 +1,4 @@
-import itertools
-
+from itertools import combinations
 from lib.expressions import Num, Alpha
 
 
@@ -15,10 +14,15 @@ def numToAlpha(x, field):
         return Alpha(p)
 
 
-def all_combinations(list):
-    for l in range(0, len(list) + 1):
-        for subset in itertools.combinations(list, l):
+def all_combinations(lst):
+    list_with_tags = list(enumerate(lst))
+    for l in range(0, len(list_with_tags) + 1):
+        for subset in combinations(list_with_tags, l):
             yield subset
+
+
+def xor_vectors(a, b):
+    return [p1 ^ p2 for (p1, p2) in zip(a, b)]
 
 
 def isDepended(lists):
@@ -29,3 +33,11 @@ def isDepended(lists):
             count ^= lists[j][i]
         numOfOne += count
     return numOfOne == 0
+
+
+def cyclic_shift_vector(lst, shift):
+    n = len(lst)
+    new_list = [None] * n
+    for i in range(n):
+        new_list[(n + i + shift) % n] = lst[i]
+    return new_list

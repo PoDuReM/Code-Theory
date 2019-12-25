@@ -5,8 +5,8 @@ from lib.expressions import *
 from functools import reduce
 
 rtl = True
-task1_input = 57
-task1_errors = 4
+task1_input = 51
+task1_errors = 2
 task1_codename = 'RC'
 task2_input = 23
 task2_code = "111111110101011"
@@ -105,7 +105,7 @@ def task2():
     print("g(x) = %s" % str(code_polynomial))
 
     syndrome_len = task2_errors * 2
-    syndrome_values_show = [(i, code_polynomial.calc({"x": field.get(i)}, field))for i in range(1, syndrome_len+1)]
+    syndrome_values_show = [(i, code_polynomial.calc({"x": field.get(i)}, field)) for i in range(1, syndrome_len+1)]
     for (i, val) in syndrome_values_show:
         if val == 0:
             print("g(a^%d) = 0" % i)

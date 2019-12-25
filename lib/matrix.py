@@ -1,11 +1,11 @@
-import itertools
-
+from functools import reduce
+from itertools import combinations
 from lib.field import Field
-from lib.util import all_combinations, isDepended
+from lib.util import isDepended, tobin, all_combinations, xor_vectors, cyclic_shift_vector
 
 
 class Matrix(object):
-    def __init__(self, rows, cols, field=Field(2)):
+    def __init__(self, rows, cols, field=Field(2), fill=None):
         """Constructs a blank matrix with the given number of rows and columns,
         with operations from the given field. All the elements are initially None."""
         if rows <= 0 or cols <= 0:
@@ -16,7 +16,7 @@ class Matrix(object):
         # The field used to operate on the values in the matrix.
         self.f = field
         # The values of the matrix stored in row-major order, with each element initially None.
-        self.values = [[None] * cols for _ in range(rows)]
+        self.values = [[fill] * cols for _ in range(rows)]
 
     @staticmethod
     def fromString(s, field=Field(2)):
@@ -76,6 +76,15 @@ class Matrix(object):
             result += "\t" + " ".join(str(val) for val in row)
         return result + "\n]"
 
+    def to_str_with_delimiter(self, where):
+        result = "[ (%d x %d matrix)\n" % (self.row_count(), self.column_count())
+        for (i, row) in enumerate(self.values):
+            if i > 0:
+                result += "\n"
+            result += "\t" + " ".join(str(val) for val in row[0:where]) + " | " + " ".join(
+                str(val) for val in row[where:])
+        return result + "\n]"
+
     # -- Simple matrix row operations --
 
     def swap_rows(self, row0, row1):
@@ -100,6 +109,11 @@ class Matrix(object):
             raise IndexError("Row index out of bounds")
         self.values[destrow] = [self.f.add(destval, self.f.multiply(srcval, factor))
                                 for (srcval, destval) in zip(self.values[srcrow], self.values[destrow])]
+
+    def add_vector(self, destrow, vector):
+        if not (len(vector) == len(self.values[0]) and 0 <= destrow < len(self.values)):
+            raise IndexError("Row index out of bounds")
+        self.values[destrow] = [self.f.add(s1, s2) for (s1, s2) in zip(self.values[destrow], vector)]
 
     def multiply(self, other):
         """Returns a new matrix representing this matrix multiplied by the given matrix. Requires the given matrix to have
@@ -312,10 +326,107 @@ class Matrix(object):
 
     def findDistance(self):
         for L in range(1, self.column_count() + 1):
-            for subset in itertools.combinations(self.transpose().values, L):
-                #print(isDepended(subset))
-                #print(L)
+            for subset in combinations(self.transpose().values, L):
+                # print(isDepended(subset))
+                # print(L)
                 if (isDepended(subset)):
                     print("solving details: " + str(subset))
                     return L
         return 999
+
+    def previous_set_bit(self, row, index):
+        for i in range(index, -1, -1):
+            if self.values[row][i] != 0:
+                return i
+        return -1
+
+    def next_set_bit(self, row, index):
+        for i in range(index, self.column_count()):
+            if self.values[row][i] != 0:
+                return i
+        return -1
+
+    def get_syndrome_table(self):
+        p = 2 ** self.column_count()
+        table = Matrix(p, self.column_count() + self.row_count(), Field(2), 0)
+        for i in range(p):
+            bin_form = tobin(i).zfill(self.column_count())
+            for (j, c) in enumerate(bin_form):
+                table.set(i, j, c)
+            for subset in all_combinations(self.values):
+                sum = reduce(lambda x, y: xor_vectors(x, y[1]), subset, [0] * self.column_count())
+                num = int("".join(list(map(str, sum))), 2)
+                if num == i:
+                    for v in subset:
+                        table.set(i, self.column_count() + v[0], 1)
+                    break
+        return table
+
+    def to_minimal_span_form(self):
+        m = self.clone()
+        span_heads = [0] * m.row_count()
+        span_tails = [0] * m.row_count()
+        head_unique_indices = [-1] * m.column_count()
+        tail_unique_indices = [-1] * m.column_count()
+        for i in range(m.row_count()):
+            span_tails[i] = m.previous_set_bit(i, m.column_count() - 1)
+            span_heads[i] = m.next_set_bit(i, 0)
+            if span_heads[i] == -1:
+                raise ValueError("rows are linear-dependent")
+            while True:
+                cur_head = span_heads[i]
+                cur_unique_row = head_unique_indices[cur_head % m.column_count()]
+                if cur_unique_row != -1:
+                    shift = cur_head - span_heads[cur_unique_row]
+                    vector_to_add = cyclic_shift_vector(m.values[cur_unique_row], shift)
+                    m.add_vector(i, vector_to_add)
+                    if span_tails[cur_unique_row] == span_tails[i]:
+                        span_tails[i] = m.previous_set_bit(i, m.column_count() - 1)
+                        if span_tails[i] == -1:
+                            raise ValueError("rows are linear-dependent")
+                    elif span_tails[cur_unique_row] > span_tails[i]:
+                        span_tails[i] = span_tails[cur_unique_row]
+
+                    span_heads[i] = m.next_set_bit(i, 0)
+
+                    if span_heads[i] == -1:
+                        raise ValueError("rows are linear-dependent")
+                else:
+                    head_unique_indices[cur_head] = i
+                    break
+        for i in range(m.row_count()):
+            index_to_verify = i
+            while True:
+                cur_tail = span_tails[index_to_verify]
+                cur_unique_row = tail_unique_indices[cur_tail]
+                if cur_unique_row != -1:
+                    if span_heads[cur_unique_row] > span_heads[index_to_verify]:
+                        shift = cur_tail - span_tails[cur_unique_row]
+                        shifted_row = cyclic_shift_vector(m.values[cur_unique_row], shift)
+                        m.add_vector(index_to_verify, shifted_row)
+                        span_tails[index_to_verify] = m.previous_set_bit(index_to_verify, m.column_count() - 1)
+                        if span_tails[index_to_verify] == -1:
+                            raise ValueError("rows are linear-dependent")
+                    else:
+                        shift = span_tails[cur_unique_row] - cur_tail
+                        shifted_row = cyclic_shift_vector(m.values[index_to_verify], shift)
+                        tail_unique_indices[cur_tail] = index_to_verify
+                        m.add_vector(cur_unique_row, shifted_row)
+                        span_tails[cur_unique_row] = m.previous_set_bit(cur_unique_row, m.column_count() - 1)
+                        if span_tails[cur_unique_row] == -1:
+                            raise ValueError("rows are linear-dependent")
+                        index_to_verify = cur_unique_row
+                else:
+                    tail_unique_indices[cur_tail] = index_to_verify
+                    break
+        return m
+
+    def span_profile(self):
+        ranges = [(self.next_set_bit(i, 0), self.previous_set_bit(i, self.column_count() - 1))
+                  for i in range(self.row_count())]
+        result = [0] * self.column_count()
+        for i in range(self.column_count()):
+            for (start, end) in ranges:
+                if start <= i and i < end:
+                    result[i] = result[i] + 1
+        return [0] + result + [0]
