@@ -19,3 +19,13 @@ def all_combinations(list):
     for l in range(0, len(list) + 1):
         for subset in itertools.combinations(list, l):
             yield subset
+
+
+def isDepended(lists):
+    numOfOne = 0
+    for i in range(len(lists[0])):
+        count = 0
+        for j in range(len(lists)):
+            count ^= lists[j][i]
+        numOfOne += count
+    return numOfOne == 0

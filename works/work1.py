@@ -20,12 +20,12 @@ input_dim_1 = 3
 input_len_2 = 9
 input_dist_2 = 4
 
-matrix = Matrix.fromString(input_matrix_str)
+H = Matrix.fromString(input_matrix_str)
 print('input (check matrix aka proverochnaya): ')
-print(str(matrix))
+print(str(H))
 
 # prints both steps and itself
-sys = matrix.systematic_form()
+sys = H.systematic_form()
 
 trimmed = sys.rtrim()
 print('after right-trimming:')
@@ -37,10 +37,10 @@ G = trans.lextend()
 print('after left-extending (generator matrix aka porojdayuschaya):')
 print(str(G))
 
-print('minamal distance of straight code')
-# print(H)
+print('minamal distance of straight code:')
+print(H.findDistance())
 
-print('minamal distance of dual code')
+print('minamal distance of dual code:')
 print(G.findDistance())
 
 
@@ -48,5 +48,5 @@ print("")
 
 print('=== generating syndrome decoding table ===')
 print('after input matrix transposing:')
-t = matrix.transpose()
+t = H.transpose()
 print(str(t))

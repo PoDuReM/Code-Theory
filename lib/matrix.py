@@ -1,4 +1,8 @@
+import itertools
+
 from lib.field import Field
+from lib.util import all_combinations, isDepended
+
 
 class Matrix(object):
     def __init__(self, rows, cols, field=Field(2)):
@@ -174,12 +178,12 @@ class Matrix(object):
                     after = m._reduce_presystematic_form()
                     print(str(after))
                     if i != j:
-                        print('swapping colomns %d and %d back: ' % (i+1, j+1))
+                        print('swapping colomns %d and %d back: ' % (i + 1, j + 1))
                         after.swap_cols(i, j)
                         print(str(after))
                     return after
                 elif i != j:
-                    print('swapping columns %d and %d and transforming is not systematic' % (i+1, j+1))
+                    print('swapping columns %d and %d and transforming is not systematic' % (i + 1, j + 1))
         raise ValueError("Failed to transform matrix to systematic form: %s" % str(self))
 
     def swap_cols(self, col0, col1):
@@ -305,3 +309,13 @@ class Matrix(object):
             # Update determinant
             det = self.f.multiply(self.get(j, j), det)
         return det
+
+    def findDistance(self):
+        for L in range(1, self.column_count() + 1):
+            for subset in itertools.combinations(self.transpose().values, L):
+                #print(isDepended(subset))
+                #print(L)
+                if (isDepended(subset)):
+                    print("solving details: " + str(subset))
+                    return L
+        return 999
