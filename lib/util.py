@@ -1,4 +1,6 @@
-from expressions import *
+import itertools
+
+from lib.expressions import Num, Alpha
 
 
 def tobin(x):
@@ -11,3 +13,9 @@ def numToAlpha(x, field):
     else:
         p = field.powerOf(x)
         return Alpha(p)
+
+
+def all_combinations(list):
+    for l in range(0, len(list) + 1):
+        for subset in itertools.combinations(list, l):
+            yield subset
