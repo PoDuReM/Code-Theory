@@ -1,8 +1,5 @@
 from lib.field import Field
-from lib.matrix import Matrix
-from lib.util import *
 from lib.expressions import *
-from functools import reduce
 
 rtl = True
 task1_input = 51
@@ -105,7 +102,7 @@ def task2():
     print("g(x) = %s" % str(code_polynomial))
 
     syndrome_len = task2_errors * 2
-    syndrome_values_show = [(i, code_polynomial.calc({"x": field.get(i)}, field)) for i in range(1, syndrome_len+1)]
+    syndrome_values_show = [(i, code_polynomial.calc({"x": field.get(i)}, field)) for i in range(1, syndrome_len + 1)]
     for (i, val) in syndrome_values_show:
         if val == 0:
             print("g(a^%d) = 0" % i)
@@ -115,6 +112,7 @@ def task2():
     syndrome_values = map(lambda tuple: numToAlpha(tuple[1], field), syndrome_values_show)
     syndrome = Polynomial(syndrome_values)
     print("syndrome(x) = %s" % str(syndrome))
+
 
 task1()
 task2()

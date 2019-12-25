@@ -70,7 +70,7 @@ class Field:
         a = 0
         b = 1
         while y != 0:
-            q, r = self._divide_and_remainder(x, y)
+            q, r = self.divide_and_remainder(x, y)
             if q == self.modulus:
                 q = 0
             x, y = y, r
@@ -81,7 +81,7 @@ class Field:
             raise AssertionError("Field modulus is not irreducible")
 
     # Returns a new tuple containing the pair of values (x div y, x mod y).
-    def _divide_and_remainder(self, x, y):
+    def divide_and_remainder(self, x, y):
         quotient = 0
         ylen = y.bit_length()
         for i in reversed(range(x.bit_length() - ylen + 1)):

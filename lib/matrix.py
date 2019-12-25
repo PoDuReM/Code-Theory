@@ -1,7 +1,7 @@
 from functools import reduce
 from itertools import combinations
 from lib.field import Field
-from lib.util import isDepended, tobin, all_combinations, xor_vectors, cyclic_shift_vector
+from lib.util import is_depended, tobin, all_combinations, xor_vectors, cyclic_shift_vector
 
 
 class Matrix(object):
@@ -324,14 +324,14 @@ class Matrix(object):
             det = self.f.multiply(self.get(j, j), det)
         return det
 
-    def findDistance(self):
-        for L in range(1, self.column_count() + 1):
-            for subset in combinations(self.transpose().values, L):
+    def find_distance(self):
+        for l in range(1, self.column_count() + 1):
+            for subset in combinations(self.transpose().values, l):
                 # print(isDepended(subset))
                 # print(L)
-                if (isDepended(subset)):
+                if (is_depended(subset)):
                     print("solving details: " + str(subset))
-                    return L
+                    return l
         return 999
 
     def previous_set_bit(self, row, index):
@@ -427,6 +427,6 @@ class Matrix(object):
         result = [0] * self.column_count()
         for i in range(self.column_count()):
             for (start, end) in ranges:
-                if start <= i and i < end:
+                if start <= i < end:
                     result[i] = result[i] + 1
         return [0] + result + [0]

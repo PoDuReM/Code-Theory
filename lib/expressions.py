@@ -1,6 +1,7 @@
 from functools import reduce
 from lib.util import *
 
+
 class Expression(object):
     def calc(self, vars, field):
         raise NotImplementedError("calc is not implemented for %s" % str(self))
@@ -87,6 +88,13 @@ class Alpha(Expression):
     def __str__(self):
         return "a^%d" % self.power
 
+def numToAlpha(x, field):
+    if x == 0:
+        return Num(0)
+    else:
+        p = field.powerOf(x)
+        return Alpha(p)
+
 
 class Binary(Expression):
     def __init__(self, a, b):
@@ -134,7 +142,7 @@ class MultList(Expression):
         cur = self.args[0]
         for i, next in enumerate(self.args[1:]):
             cur = cur.mult(next, field)
-            result.append(MultList([cur] + self.args[i+2:]))
+            result.append(MultList([cur] + self.args[i + 2:]))
         return result
 
 
@@ -155,9 +163,11 @@ def _polynom_str(tuple, max_power):
     else:
         return "%s * x^%d" % (str(it), max_power - i)
 
+
 def binaryToPolynomial(s):
     last_index = s.rindex("1")
-    return Polynomial([Num(0) if c == '0' else Num(1) for c in s[0:last_index+1]])
+    return Polynomial([Num(0) if c == '0' else Num(1) for c in s[0:last_index + 1]])
+
 
 class Polynomial(Expression):
     # constant goes first
@@ -194,4 +204,5 @@ class Polynomial(Expression):
         indexed = list(enumerate(self.list[::-1]))
 
         return "( %s )" % " + ".join(
-            list(map(lambda it: _polynom_str(it, len(self.list) - 1), filter(lambda tuple: not tuple[1].is_null(), indexed))))
+            list(map(lambda it: _polynom_str(it, len(self.list) - 1),
+                     filter(lambda tuple: not tuple[1].is_null(), indexed))))
