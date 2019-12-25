@@ -32,3 +32,15 @@ def cyclic_shift_vector(lst, shift):
     for i in range(n):
         new_list[(n + i + shift) % n] = lst[i]
     return new_list
+
+def choose(n, k):
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in range(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0

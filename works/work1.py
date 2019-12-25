@@ -98,7 +98,6 @@ upper = Sum(Mult(Num(input_a), Var(1)), Num(input_b)).calc({"x": input_x0}, fiel
 bottom = Sum(Mult(Num(input_c), Var(1)), Num(input_d)).calc({"x": input_x0}, field)
 bottom_inverted = field.reciprocal(bottom)
 upper_div_bottom = field.multiply(upper, bottom_inverted)
-print('f(x) = ( %d * x + %d ) / ( %d * x + %d )'
-      % (input_a, input_b, input_c, input_d))
+print('f(x) = ( %d * x + %d ) / ( %d * x + %d )' % (input_a, input_b, input_c, input_d))
 print('f(%d) = %d / %d = %d * %d = %d' % (input_x0, upper, bottom, upper, bottom_inverted, upper_div_bottom))
 
