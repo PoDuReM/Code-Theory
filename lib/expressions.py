@@ -120,14 +120,14 @@ class Mult(Binary):
 
 class MultList(Expression):
     def __init__(self, *args):
-        self.args = map(lambda a: a if isinstance(a, Expression) else Num(a), args[0])
+        self.args = list(map(lambda a: a if isinstance(a, Expression) else Num(a), args[0]))
 
     def calc(self, vars, field):
-        results = map(lambda it: it.calc(vars, field), self.args)
+        results = list(map(lambda it: it.calc(vars, field), self.args))
         return reduce(lambda x, y: field.multiply(x, y), results)
 
     def __str__(self):
-        return " * ".join(map(str, self.args))
+        return " * ".join(list(map(str, self.args)))
 
     def toPolynomial(self, field):
         result = []
@@ -160,10 +160,10 @@ def binaryToPolynomial(s):
 class Polynomial(Expression):
     # constant goes first
     def __init__(self, lst):
-        self.list = map(lambda a: a if isinstance(a, Expression) else Num(a), lst)
+        self.list = list(map(lambda a: a if isinstance(a, Expression) else Num(a), lst))
 
     def calc(self, vars, field):
-        results = map(lambda (i, it): Mult(it, Var(i)).calc(vars, field), list(enumerate(self.list)))
+        results = list(map(lambda (i, it): Mult(it, Var(i)).calc(vars, field), list(enumerate(self.list))))
         return reduce(lambda x, y: field.add(x, y), results)
 
     def mult(self, other, field):
@@ -192,4 +192,4 @@ class Polynomial(Expression):
         indexed = list(enumerate(self.list[::-1]))
 
         return "( %s )" % " + ".join(
-            map(lambda it: _polynom_str(it, len(self.list) - 1), filter(lambda (i, it): not it.is_null(), indexed)))
+            list(map(lambda it: _polynom_str(it, len(self.list) - 1), filter(lambda (i, it): not it.is_null(), indexed))))

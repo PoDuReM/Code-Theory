@@ -1,8 +1,4 @@
-from lib.field import Field
 from lib.matrix import Matrix
-from lib.util import *
-from lib.expressions import *
-from functools import reduce
 
 # input_matrix_str = """
 #     0 0 1 0 1 1 1 1 1
