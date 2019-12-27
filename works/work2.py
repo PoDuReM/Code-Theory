@@ -1,16 +1,17 @@
 from lib.field import Field
 from lib.expressions import *
+from lib.matrix import get_m_matrix
 
 rtl = True
-task1_input = 51
+task1_input = 23
 task1_errors = 2
-task1_codename = 'RC'
+task1_is_rc_code = True
 task2_input = 23
 task2_code = "111111110101011"
 task2_code_is_binary = True
 task2_errors = 2
+# DOESN'T MATTER
 task2_codename = 'RC'
-
 
 def task1():
     print("=== TASK 1 ===")
@@ -26,21 +27,12 @@ def task1():
 
     binary_modulus = tobin(modulus)
     mod_length = len(binary_modulus)
+    M = mod_length - 1
     print("modulus = %s" % binary_modulus)
-    # print("GF(2^%s)" % (mod_length - 1))
-    print("GF(2^???)")
+    print("GF(2^%s)" % M)
     print("")
 
     d = task1_errors * 2 + 1
-    n = 2 ** (mod_length - 1) - 1
-    k = n - d + 1
-
-    deg = d - 1
-    print("floor((d-1)/2) = errors_num => d = (errors_num * 2 + 1) = %d" % d)
-    print("n = 2^%d - 1 = %d" % (mod_length - 1, n))
-    print("k <= n - d + 1 =(RS-cod udovletvoryaet granitse Singletona)> k = %d" % k)
-    print("deg(g(x)) = d - 1 = %d" % deg)
-    print("")
 
     field = Field(modulus)
     elements = field.get_all_elems()
@@ -50,24 +42,56 @@ def task1():
 
     print("")
 
-    def gen_brackets():
-        for i in range(1, deg + 1):
-            yield Polynomial([Alpha(i), Num(1)])
+    if task1_is_rc_code:
+        def gen_brackets():
+            for i in range(1, d):
+                yield Polynomial([Alpha(i), Num(1)])
 
-    brackets = MultList(list(gen_brackets()))
-    print("g(x) = %s" % str(brackets))
-    # temp = MultList([Polynomial([Alpha(1), Num(1)]), Polynomial([Alpha(2), Num(1)])])
-    # print(str(temp))
-    # print(str(temp.toPolynomial(field)[0]))
-    print("")
+        brackets = MultList(list(gen_brackets()))
+        print("g(x) = %s" % str(brackets))
+        print("")
 
-    steps = brackets.toPolynomial(field)
-    for step in steps:
-        print(str(step))
-    print("")
+        steps = brackets.toPolynomialCalc(field)
+        for step in steps:
+            print(str(step))
+        print("")
 
-    print("g(x) = %s" % str(steps[-1]))
-    print("")
+        print("g(x) = %s" % str(steps[-1]))
+        print("")
+        n = 2 ** M - 1
+        k = n - d + 1
+        print("d = %d, n = %d, k = %d" % (d, n, k))
+    else:
+        print('classes: ')
+        classes = get_cyclic_classes(2 ** M - 1)
+        for c in classes:
+            print("C_%d = %s" % (c[0], c))
+        include_classes_nums = {}
+        include_classes = []
+        for i in range(1, d):
+            for c in classes:
+                if not (c[0] in include_classes_nums) and i in c:
+                    include_classes_nums[c[0]] = True
+                    include_classes.append(c)
+        print('classes that include numbers 1..%d: %s' % (d - 1, list(include_classes_nums.keys())))
+        print('list of M_i:')
+
+        def gen_brackets(c):
+            for i in c:
+                yield Polynomial([Alpha(i), Num(1)])
+
+        m_array = [MultList(list(gen_brackets(c))) for c in include_classes]
+        m_array_reduced = list(map(lambda x: x.toPolynomial(field), m_array))
+        for i in range(len(m_array)):
+            print("M_%d = %s = %s" % (include_classes[i][0], str(m_array[i]), str(m_array_reduced[i])))
+        gx = reduce(lambda x, y: x.mult(y, field), m_array)
+        print("g(x) = %s" % str(gx))
+        poly = gx.toPolynomial(field)
+        print("g(x) = %s" % poly)
+        n = 2 ** M - 1
+        h = poly.max_power()
+        k = n - h
+        print("d = %d, n = %d, k = %d" % (d, n, k))
 
 
 def task2():
@@ -85,8 +109,7 @@ def task2():
     binary_modulus = tobin(modulus)
     mod_length = len(binary_modulus)
     print("modulus = %s" % binary_modulus)
-    # print("GF(2^%s)" % (mod_length - 1))
-    print("GF(2^???)")
+    print("GF(2^%s)" % (mod_length - 1))
     print("")
 
     field = Field(modulus)
@@ -109,10 +132,21 @@ def task2():
         else:
             p = field.powerOf(val)
             print("g(a^%d) = a^%d" % (i, p))
-    syndrome_values = map(lambda tuple: numToAlpha(tuple[1], field), syndrome_values_show)
+    syndrome_values = list(map(lambda tuple: numToAlpha(tuple[1], field), syndrome_values_show))
+    syndrome_values_raw = list(map(lambda a: a.calc({}, field), syndrome_values))
     syndrome = Polynomial(syndrome_values)
     print("syndrome(x) = %s" % str(syndrome))
-
+    v = task2_errors + 1
+    D = 0
+    M = None
+    while D == 0:
+        v = v - 1
+        print(syndrome_values_raw[0:v+1])
+        M = get_m_matrix(syndrome_values_raw[0:v+1], field)
+        print("with M = ")
+        print(str(M))
+        D = M.determinant_and_ref()
+        print("v = %d, D = %d" % (v, D))
 
 task1()
 task2()

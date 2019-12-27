@@ -3,6 +3,19 @@ from itertools import combinations
 from lib.field import Field
 from lib.util import is_depended, tobin, all_combinations, xor_vectors, cyclic_shift_vector
 
+def get_m_matrix(lst, field):
+    size = (len(lst) + 1) // 2
+    m = Matrix(size, size, field)
+    for (i, v) in enumerate(lst):
+        x, y = 0, i
+        while y >= size:
+            y = y - 1
+            x = x + 1
+        while x < size and y >= 0:
+            m.set(y, x, v)
+            y = y - 1
+            x = x + 1
+    return m
 
 class Matrix(object):
     def __init__(self, rows, cols, field=Field(2), fill=None):
@@ -191,11 +204,7 @@ class Matrix(object):
                     print('success! after reduction: ')
                     after = m._reduce_presystematic_form()
                     print(str(after))
-                    if i != j:
-                        print('swapping colomns %d and %d back: ' % (i + 1, j + 1))
-                        after.swap_cols(i, j)
-                        print(str(after))
-                    return after
+                    return after, i, j
                 elif i != j:
                     print('swapping columns %d and %d and transforming is not systematic' % (i + 1, j + 1))
         raise ValueError("Failed to transform matrix to systematic form: %s" % str(self))
@@ -231,11 +240,8 @@ class Matrix(object):
         return result
 
     def lextend(self):
-        rows = self.row_count()
-        cols = self.column_count()
-        rc = max(rows, cols)
-        result = Matrix(self.row_count(), self.column_count() + rc, self.f)
-        result.values = [[0] * rc + list(row) for row in self.values]
+        result = Matrix(self.row_count(), self.column_count() + self.row_count(), self.f)
+        result.values = [[0] * self.row_count() + list(row) for row in self.values]
         x, y = 0, 0
         while x < result.row_count() and y < result.column_count():
             result.values[y][x] = 1
@@ -293,14 +299,14 @@ class Matrix(object):
         cols = self.column_count()
         if rows != cols:
             raise RuntimeError("Matrix dimensions are not square")
-        det = self.f.one()
+        det = 1
 
         # Compute row echelon form (REF)
         numpivots = 0
         for j in range(cols):  # For each column
             # Find a pivot row for this column
             pivotrow = numpivots
-            while pivotrow < rows and self.f.equals(self.get(pivotrow, j), self.f.zero()):
+            while pivotrow < rows and self.f.equals(self.get(pivotrow, j), 0):
                 pivotrow += 1
 
             if pivotrow < rows:

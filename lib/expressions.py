@@ -72,7 +72,7 @@ class Alpha(Expression):
 
     def mult(self, other, field):
         if isinstance(other, Alpha):
-            return Alpha((self.power + other.power) % field.maxPower())
+            return Alpha(field.powerOf(field.multiply(field.get(self.power), field.get(other.power))))
         if isinstance(other, Num):
             return other.mult(self, field)
         raise TypeError("can't multiply %s and %s" % (str(self), str(other)))
@@ -137,13 +137,24 @@ class MultList(Expression):
     def __str__(self):
         return " * ".join(list(map(str, self.args)))
 
-    def toPolynomial(self, field):
+    def mult(self, other, field):
+        if isinstance(other, MultList):
+            return MultList(self.args + other.args)
+        raise TypeError("can't multiply %s and %s" % (str(self), str(other)))
+
+    def toPolynomialCalc(self, field):
         result = []
         cur = self.args[0]
         for i, next in enumerate(self.args[1:]):
             cur = cur.mult(next, field)
             result.append(MultList([cur] + self.args[i + 2:]))
         return result
+
+    def toPolynomial(self, field):
+        cur = self.args[0]
+        for i, next in enumerate(self.args[1:]):
+            cur = cur.mult(next, field)
+        return cur
 
 
 def _polynom_str(tuple, max_power):
@@ -174,6 +185,10 @@ class Polynomial(Expression):
     def __init__(self, lst):
         self.list = list(map(lambda a: a if isinstance(a, Expression) else Num(a), lst))
 
+    def alpha_reduce(self, field):
+        self.list = list(map(lambda a: Num(a.calc({}, field) & 1), self.list))
+        return self
+
     def calc(self, vars, field):
         results = list(map(lambda tuple: Mult(tuple[1], Var(tuple[0])).calc(vars, field), list(enumerate(self.list))))
         return reduce(lambda x, y: field.add(x, y), results)
@@ -199,6 +214,9 @@ class Polynomial(Expression):
             if not val.is_null():
                 result[p] = val
         return Polynomial(result)
+
+    def max_power(self):
+        return len(self.list) - 1
 
     def __str__(self):
         indexed = list(enumerate(self.list[::-1]))

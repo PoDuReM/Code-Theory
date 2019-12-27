@@ -37,7 +37,7 @@ print('input (check matrix aka proverochnaya): ')
 print(str(H))
 
 # prints both steps and itself
-sys = H.systematic_form()
+(sys, ii, jj) = H.systematic_form()
 
 trimmed = sys.rtrim()
 print('after right-trimming:')
@@ -46,6 +46,7 @@ trans = trimmed.transpose()
 print('after transposing:')
 print(str(trans))
 G = trans.lextend()
+G.swap_cols(ii, jj)
 print('after left-extending (generator matrix aka porojdayuschaya):')
 print(str(G))
 

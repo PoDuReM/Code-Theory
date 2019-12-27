@@ -33,6 +33,7 @@ def cyclic_shift_vector(lst, shift):
         new_list[(n + i + shift) % n] = lst[i]
     return new_list
 
+
 def choose(n, k):
     if 0 <= k <= n:
         ntok = 1
@@ -44,3 +45,21 @@ def choose(n, k):
         return ntok // ktok
     else:
         return 0
+
+
+def get_cyclic_classes(modulus):
+    result = [[0]]
+    unused_count = modulus - 1
+    used = {0: True}
+    for i in range(1, modulus):
+        new_class = []
+        cur = i
+        while not (cur in used or cur in new_class):
+            new_class.append(cur)
+            cur = (cur * 2) % modulus
+        if not (cur in used) and cur in new_class:
+            for it in new_class:
+                used[it] = True
+            unused_count -= len(new_class)
+            result.append(new_class)
+    return result
