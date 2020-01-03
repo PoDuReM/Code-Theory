@@ -179,6 +179,11 @@ def binaryToPolynomial(s):
     last_index = s.rindex("1")
     return Polynomial([Num(0) if c == '0' else Num(1) for c in s[0:last_index + 1]])
 
+def octToPolynomial(s, field):
+    arr = [numToAlpha(int(c, 8), field) for c in s][::-1]
+    return Polynomial(arr)
+
+
 
 class Polynomial(Expression):
     # constant goes first
@@ -192,6 +197,13 @@ class Polynomial(Expression):
     def calc(self, vars, field):
         results = list(map(lambda tuple: Mult(tuple[1], Var(tuple[0])).calc(vars, field), list(enumerate(self.list))))
         return reduce(lambda x, y: field.add(x, y), results)
+
+    def find_roots(self, field):
+        result = []
+        for x0 in ([0] + field.get_all_elems()):
+            if self.calc({"x" : x0}, field) == 0:
+                result.append(x0)
+        return result
 
     def mult(self, other, field):
         if not isinstance(other, Polynomial):

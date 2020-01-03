@@ -98,6 +98,14 @@ class Matrix(object):
                 str(val) for val in row[where:])
         return result + "\n]"
 
+    def str_field(self):
+        result = "[ (%d x %d matrix)\n" % (self.row_count(), self.column_count())
+        for (i, row) in enumerate(self.values):
+            if i > 0:
+                result += "\n"
+            result += "\t" + " ".join("a^%d" % self.f.powerOf(val) if val != 0 else "0" for val in row)
+        return result + "\n]"
+
     # -- Simple matrix row operations --
 
     def swap_rows(self, row0, row1):
@@ -257,6 +265,18 @@ class Matrix(object):
             x = x - 1
             y = y - 1
         return True
+
+    def append_col(self, col):
+        if len(col) != len(self.values):
+            raise IndexError("vector has invalid length")
+        result = Matrix(self.row_count(), self.column_count()+1, self.f)
+        for i in range(len(self.values)):
+            result.values[i] = self.values[i] + [col[i]]
+        return result
+
+    def solve(self):
+        self.reduced_row_echelon_form()
+        return [self.values[i][-1] for i in range(self.row_count())]
 
     def invert(self):
         """Replaces the values of this matrix with the inverse of this matrix. Requires the matrix to be square.

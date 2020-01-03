@@ -1,14 +1,14 @@
 from lib.field import Field
 from lib.expressions import *
-from lib.matrix import get_m_matrix
+from lib.matrix import get_m_matrix, Matrix
 
 rtl = True
 task1_input = 23
 task1_errors = 2
 task1_is_rc_code = True
 task2_input = 23
-task2_code = "111111110101011"
-task2_code_is_binary = True
+task2_code = "6660440"
+task2_code_is_binary = False
 task2_errors = 2
 # DOESN'T MATTER
 task2_codename = 'RC'
@@ -120,8 +120,7 @@ def task2():
 
     print("")
 
-    code_binary = task2_code if task2_code_is_binary else tobin(int(task2_code, 8)).zfill(len(str(task2_code)) * 3)
-    code_polynomial = binaryToPolynomial(code_binary)
+    code_polynomial = binaryToPolynomial(task2_code) if task2_code_is_binary else octToPolynomial(task2_code, field)
     print("g(x) = %s" % str(code_polynomial))
 
     syndrome_len = task2_errors * 2
@@ -144,9 +143,29 @@ def task2():
         print(syndrome_values_raw[0:v+1])
         M = get_m_matrix(syndrome_values_raw[0:v+1], field)
         print("with M = ")
-        print(str(M))
+        print(M.str_field())
         D = M.determinant_and_ref()
         print("v = %d, D = %d" % (v, D))
+    M = get_m_matrix(syndrome_values_raw[0:v + 1], field)
+    MSolve = M.append_col(syndrome_values_raw[len(syndrome_values_raw)-v:])
+    print(MSolve.str_field())
+    lambdas = MSolve.solve()
+    print(MSolve.str_field())
+    lambdas_coef = list(map(lambda it: numToAlpha(it, field), lambdas))
+    lambda_poly = Polynomial(lambdas_coef + [1])
+    print(lambda_poly)
+    roots = lambda_poly.find_roots(field)
+    print("roots: %s" % list(map(lambda it: str(numToAlpha(it, field)), roots)))
+    inverse_roots = list(map(lambda it: field.reciprocal(it), roots))
+    print("inverse_roots (locators): %s" % list(map(lambda it: str(numToAlpha(it, field)), inverse_roots)))
+    y_left = Matrix(len(inverse_roots), len(inverse_roots), field)
+    y_left.values = [list(map(lambda it: field.power(it, i), inverse_roots)) for i in range(1, len(inverse_roots)+1)]
+    system = y_left.append_col(syndrome_values_raw[:len(inverse_roots)])
+    print("values system: ")
+    print(system.str_field())
+    y_arr = system.solve()
+    print("solved: ")
+    print(system.str_field())
 
 task1()
 task2()
